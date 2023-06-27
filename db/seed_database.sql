@@ -33,18 +33,22 @@ VALUES (1, 'Red shirt', 'sh-1', 10.00, 10),
 DROP TABLE IF EXISTS purchase_orders;
 CREATE TABLE purchase_orders
 (
-  `id`                     INT PRIMARY KEY,
+  `id`                     INTEGER PRIMARY KEY AUTOINCREMENT,
   `vendor_name`            VARCHAR(255) NOT NULL,
   `order_date`             DATE         NOT NULL,
   `expected_delivery_date` DATE         NOT NULL,
   `created_at`             TIMESTAMP NULL,
   `updated_at`             TIMESTAMP NULL
 );
+INSERT INTO purchase_orders (`vendor_name`, `order_date`, `expected_delivery_date`)
+VALUES ('Levis', '2023-01-01', '2023-03-10'),
+       ('Bonobos', '2023-02-01', '2023-04-10'),
+       ('Scotch and Soda', '2023-03-01', '2023-05-10');
 
 DROP TABLE IF EXISTS purchase_order_line_items;
 CREATE TABLE purchase_order_line_items
 (
-  `id`                INT PRIMARY KEY,
+  `id`                INTEGER PRIMARY KEY AUTOINCREMENT,
   `purchase_order_id` INT            NOT NULL,
   `item_id`           INT            NOT NULL,
   `quantity`          INT            NOT NULL,
@@ -52,3 +56,16 @@ CREATE TABLE purchase_order_line_items
   `created_at`        TIMESTAMP NULL,
   `updated_at`        TIMESTAMP NULL
 );
+INSERT INTO purchase_order_line_items (`purchase_order_id`, `item_id`, `quantity`, `unit_cost`)
+VALUES (1, 1, 10, 10.00),
+       (1, 2, 10, 10.00),
+       (1, 3, 10, 10.00),
+       (2, 4, 10, 20.00),
+       (2, 5, 10, 20.00),
+       (2, 6, 10, 20.00),
+       (3, 1, 10, 10.00),
+       (3, 2, 10, 10.00),
+       (3, 3, 10, 10.00),
+       (3, 4, 10, 20.00),
+       (3, 5, 10, 20.00),
+       (3, 6, 10, 20.00);

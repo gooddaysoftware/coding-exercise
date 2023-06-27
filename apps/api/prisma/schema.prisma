@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Item {
+  id             Int        @id @default(autoincrement())
+  parent_item    ParentItem @relation(fields: [parent_item_id], references: [id])
+  parent_item_id Int
+  name           String
+  sku            String
+  price          Decimal
+  quantity       Int
+  created_at     DateTime?
+  updated_at     DateTime?
+
+  @@map("items")
+}
+
+model ParentItem {
+  id         Int       @id @default(autoincrement())
+  name       String
+  created_at DateTime?
+  updated_at DateTime?
+
+  items Item[]
+
+  @@map("parent_items")
+}
+
+model PurchaseOrderLineItems {
+  id                Int            @id @default(autoincrement())
+  purchase_order    PurchaseOrders @relation(fields: [purchase_order_id], references: [id])
+  purchase_order_id Int
+  item_id           Int
+  quantity          Int
+  unit_cost         Decimal
+  created_at        DateTime?
+  updated_at        DateTime?
+
+  @@map("purchase_order_line_items")
+}
+
+model PurchaseOrders {
+  id                     Int       @id @default(autoincrement())
+  vendor_name            String
+  order_date             DateTime
+  expected_delivery_date DateTime
+  created_at             DateTime?
+  updated_at             DateTime?
+
+  purchase_order_line_items PurchaseOrderLineItems[]
+
+  @@map("purchase_orders")
+}

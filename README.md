@@ -52,6 +52,7 @@ It's likely we won't complete every requirement, but let's get as far as we can 
 ### To Start Exercise
  - Run `npm install --global nx@latest`
  - Run `npm install`
+ - Run `npx prisma generate --schema apps/api/prisma/schema.prisma`
  - Run `nx run api:serve:development`
  - Run `nx run client:serve:development`
 
@@ -60,8 +61,8 @@ Here is the schema we will use for this exercise.
 ![er-diagram.png](docs/er-diagram.png)
  - `parent_items` are the parent of `items`. Example: t-shirt or pants
  - `items` represent variations of items that we can sell. Example: t-shirt in red or blue
- - `purchase_orders` represent the document we use to track variants we are ordering from vendors.
- - `purchase_order_line_items` represent the line items on a purchase order, and are linked to variants.
+ - `purchase_orders` represent the document we use to track items we are ordering from vendors.
+ - `purchase_order_line_items` represent the line items on a purchase order, and are linked to items.
 
 ### Explorations
 Once the requirements above have been completed, let's spend some time exploring the following:
