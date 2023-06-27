@@ -43,7 +43,6 @@ It's likely we won't complete every requirement, but let's get as far as we can 
 - Ability to see a list of purchase orders, create, and edit them
 - Sensible validation for creation and editing of fields
 - Error handling for the validation
-- Test coverage
 
 ### Starting Point
 
