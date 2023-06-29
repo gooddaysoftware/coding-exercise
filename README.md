@@ -68,7 +68,6 @@ Here is the schema we will use for this exercise.
  - `purchase_order_line_items` represent the line items on a purchase order, and are linked to items.
 
 ### Explorations
-Once the requirements above have been completed, let's spend some time exploring the following:
+In the technical interview process we will makes some changes to this code expoloring concepts such as ERP and Inventory. More specific requirements will be shared during the collaboration session.
 
-- It's important to understand the cost of goods sold in order to understand our profit margin. Costs for each item can vary per purchase order. Let's talk through how we would implement this.
-- Let's say a merchant's online store is able to only sell inventory that is on hand. In other words, inventory that the merchant has at their fulfillment center. Let’s talk through how we would implement presale / backorder to sell goods that they have on order from a vendor.
+We are looking forward to our pairing session soon!
