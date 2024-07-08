@@ -1,15 +1,13 @@
-import {Module} from '@nestjs/common';
+import { Module } from '@nestjs/common';
 
-import {AppController} from './app.controller';
-import {AppService} from './app.service';
-import {ParentItemsModule} from "../parent-items/parent-items.module";
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { ParentItemsModule } from '../parent-items/parent-items.module';
+import { PurchaseOrdersModule } from '../purchase-orders/purchase-orders.module';
 
 @Module({
-  imports: [
-    ParentItemsModule,
-  ],
+  imports: [ParentItemsModule, PurchaseOrdersModule],
   controllers: [AppController],
-  providers: [AppService,],
+  providers: [AppService],
 })
-export class AppModule {
-}
+export class AppModule {}
