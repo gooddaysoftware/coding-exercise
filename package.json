@@ -9,9 +9,13 @@
   "scripts": {
     "install:nx": "npm install --global nx@latest",
     "setup": "npm install && npx prisma generate --schema apps/api/prisma/schema.prisma",
+    "seed": "npx prisma db seed",
     "start:api": "nx run api:serve:development",
     "start:client": "nx run client:serve:development",
     "start": "npm run start:api & npm run start:client"
+  },
+  "prisma": {
+    "seed": "ts-node apps/api/prisma/seed.ts"
   },
   "private": true,
   "dependencies": {
@@ -22,6 +26,8 @@
     "@nestjs/platform-express": "^10.4.4",
     "@prisma/client": "^4.16.1",
     "axios": "^1.0.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.3",
     "nest-commander": "^3.15.0",
     "next": "14.0.4",
     "react": "18.2.0",
@@ -71,7 +77,7 @@
     "nx-cloud": "19.1.0",
     "postcss": "^8.4.24",
     "prettier": "^2.6.2",
-    "prisma": "^4.16.1",
+    "prisma": "^4.16.2",
     "tailwindcss": "^3.3.2",
     "ts-jest": "^29.1.0",
     "ts-node": "^10.9.1",
