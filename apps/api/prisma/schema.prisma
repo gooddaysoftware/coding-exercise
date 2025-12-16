@@ -50,6 +50,7 @@ model PurchaseOrders {
   vendor_name            String
   order_date             DateTime
   expected_delivery_date DateTime
+  incoterms              String?
   created_at             DateTime?
   updated_at             DateTime?
 
