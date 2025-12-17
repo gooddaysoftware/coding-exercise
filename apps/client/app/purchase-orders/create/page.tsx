@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Item, ParentItem, LineItemForm, PurchaseOrderFormData } from '../types';
-import { formatIntegerInput, parseFormattedNumber } from '../utils';
+import { formatIntegerInput, parseFormattedNumber, formatCurrency } from '../utils';
 
 export default function CreatePurchaseOrder() {
   const router = useRouter();
@@ -297,7 +297,7 @@ export default function CreatePurchaseOrder() {
           <div className="card bg-base-100 shadow-xl">
             <div className="card-body">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="card-title">Line Items</h2>
+                <h2 className="card-title">Items</h2>
                 <button
                   type="button"
                   className="btn btn-primary btn-sm"
@@ -323,7 +323,7 @@ export default function CreatePurchaseOrder() {
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                       <div className="form-control">
                         <label className="label">
                           <span className="label-text">Item</span>
@@ -370,6 +370,17 @@ export default function CreatePurchaseOrder() {
                           onChange={(e) => handleLineItemChange(index, 'unit_cost', e.target.value)}
                           required
                         />
+                      </div>
+
+                      <div className="form-control">
+                        <label className="label">
+                          <span className="label-text">Subtotal</span>
+                        </label>
+                        <div className="input input-bordered flex items-center bg-base-200">
+                          ${formatCurrency(
+                            Number(parseFormattedNumber(lineItem.quantity)) * Number(lineItem.unit_cost) || 0
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Item, ParentItem, LineItemForm, PurchaseOrderFormData, PurchaseOrder } from '../../types';
-import { formatIntegerInput, parseFormattedNumber } from '../../utils';
+import { formatIntegerInput, parseFormattedNumber, formatCurrency } from '../../utils';
 
 export default function EditPurchaseOrder() {
   const params = useParams();
@@ -360,7 +360,7 @@ export default function EditPurchaseOrder() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="form-control">
                       <label className="label">
                         <span className="label-text">Item</span>
@@ -407,6 +407,17 @@ export default function EditPurchaseOrder() {
                         onChange={(e) => handleLineItemChange(index, 'unit_cost', e.target.value)}
                         required
                       />
+                    </div>
+
+                    <div className="form-control">
+                      <label className="label">
+                        <span className="label-text">Subtotal</span>
+                      </label>
+                      <div className="input input-bordered flex items-center bg-base-200">
+                        ${formatCurrency(
+                          Number(parseFormattedNumber(lineItem.quantity)) * Number(lineItem.unit_cost) || 0
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
