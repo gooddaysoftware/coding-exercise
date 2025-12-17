@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { PurchaseOrder, PurchaseOrderLineItem, PaginationMeta, PaginatedResponse } from './types';
-import { formatDate, calculateTotal, calculateTotalQuantity } from './utils';
+import { formatDate, formatNumber, formatCurrency, calculateTotal, calculateTotalQuantity } from './utils';
 
 type SortField = 'vendor' | 'order_date' | 'delivery_date' | 'quantity' | 'cost';
 type SortDirection = 'asc' | 'desc';
@@ -90,6 +90,11 @@ export default function Index() {
     setCurrentPage(1); // Reset to first page when sorting changes
   };
 
+  // Helper to calculate raw total for sorting (without formatting)
+  const calculateRawTotal = (lineItems: PurchaseOrderLineItem[]) => {
+    return lineItems.reduce((sum, item) => sum + (Number(item.unit_cost) * item.quantity), 0);
+  };
+
   const sortedData = (() => {
     // For API-sortable fields, data is already sorted from the API
     const apiSortableFields = ['vendor', 'order_date', 'delivery_date'];
@@ -106,7 +111,7 @@ export default function Index() {
           compareValue = calculateTotalQuantity(a.purchase_order_line_items) - calculateTotalQuantity(b.purchase_order_line_items);
           break;
         case 'cost':
-          compareValue = Number(calculateTotal(a.purchase_order_line_items)) - Number(calculateTotal(b.purchase_order_line_items));
+          compareValue = calculateRawTotal(a.purchase_order_line_items) - calculateRawTotal(b.purchase_order_line_items);
           break;
       }
 
@@ -221,7 +226,7 @@ export default function Index() {
                   <div className="text-center min-w-[100px]">
                     <div className="text-xs text-slate-400">Quantity</div>
                     <div className="font-bold">
-                      {calculateTotalQuantity(purchaseOrder.purchase_order_line_items)}
+                      {formatNumber(calculateTotalQuantity(purchaseOrder.purchase_order_line_items))}
                     </div>
                   </div>
 
@@ -265,7 +270,7 @@ export default function Index() {
 
                 <details className="collapse collapse-arrow bg-base-200">
                   <summary className="collapse-title font-semibold">
-                    Order Details ({purchaseOrder.purchase_order_line_items.length})
+                    Order Details ({purchaseOrder.purchase_order_line_items.length} items)
                   </summary>
                   <div className="collapse-content">
                     <div className="overflow-x-auto">
@@ -282,10 +287,10 @@ export default function Index() {
                           {purchaseOrder.purchase_order_line_items.map((lineItem: PurchaseOrderLineItem) => (
                             <tr key={lineItem.id}>
                               <td>#{lineItem.item_id}</td>
-                              <td>{lineItem.quantity}</td>
-                              <td>${Number(lineItem.unit_cost).toFixed(2)}</td>
+                              <td>{formatNumber(lineItem.quantity)}</td>
+                              <td>${formatCurrency(lineItem.unit_cost)}</td>
                               <td className="text-right">
-                                ${(Number(lineItem.unit_cost) * lineItem.quantity).toFixed(2)}
+                                ${formatCurrency(Number(lineItem.unit_cost) * lineItem.quantity)}
                               </td>
                             </tr>
                           ))}
@@ -295,7 +300,7 @@ export default function Index() {
                   </div>
                 </details>
               </div>
-            </div>
+            </div>  
           ))}
         </div>
 
@@ -355,7 +360,7 @@ export default function Index() {
             </button>
 
             <span className="text-sm text-slate-400 ml-4">
-              {pagination.total} total
+              {formatNumber(pagination.total)} total
             </span>
           </div>
         )}

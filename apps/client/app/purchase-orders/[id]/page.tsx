@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { PurchaseOrder, PurchaseOrderLineItem } from '../types';
-import { formatDate, calculateTotal, calculateTotalQuantity } from '../utils';
+import { formatDate, formatNumber, formatCurrency, calculateTotal, calculateTotalQuantity } from '../utils';
 
 export default function PurchaseOrderDetail() {
   const params = useParams();
@@ -131,10 +131,10 @@ export default function PurchaseOrderDetail() {
                   {purchaseOrder.purchase_order_line_items.map((lineItem: PurchaseOrderLineItem) => (
                     <tr key={lineItem.id}>
                       <td>#{lineItem.item_id}</td>
-                      <td>{lineItem.quantity}</td>
-                      <td>${Number(lineItem.unit_cost).toFixed(2)}</td>
+                      <td>{formatNumber(lineItem.quantity)}</td>
+                      <td>${formatCurrency(lineItem.unit_cost)}</td>
                       <td className="text-right">
-                        ${(Number(lineItem.unit_cost) * lineItem.quantity).toFixed(2)}
+                        ${formatCurrency(Number(lineItem.unit_cost) * lineItem.quantity)}
                       </td>
                     </tr>
                   ))}
@@ -148,7 +148,7 @@ export default function PurchaseOrderDetail() {
               <div>
                 <div className="text-sm text-slate-400">Total Quantity</div>
                 <div className="text-xl font-bold">
-                  {calculateTotalQuantity(purchaseOrder.purchase_order_line_items)} items
+                  {formatNumber(calculateTotalQuantity(purchaseOrder.purchase_order_line_items))} items
                 </div>
               </div>
               <div>
