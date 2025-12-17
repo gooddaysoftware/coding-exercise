@@ -22,8 +22,21 @@ interface PurchaseOrder {
   purchase_order_line_items: PurchaseOrderLineItem[];
 }
 
+interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+interface PaginatedResponse {
+  data: PurchaseOrder[];
+  meta: PaginationMeta;
+}
+
 type SortField = 'vendor' | 'order_date' | 'delivery_date' | 'quantity' | 'cost';
 type SortDirection = 'asc' | 'desc';
+const PAGE_SIZE = 5;
 
 function formatDate(dateString: string): string {
   // Extract date part to avoid timezone conversion issues
@@ -54,12 +67,17 @@ export default function Index() {
   const [loading, setLoading] = useState(true);
   const [sortField, setSortField] = useState<SortField>('delivery_date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState<PaginationMeta | null>(null);
 
   useEffect(() => {
     async function fetchData() {
+      setLoading(true);
       try {
         // Build query params
         const params = new URLSearchParams();
+        params.append('page', String(currentPage));
+        params.append('limit', String(PAGE_SIZE));
 
         // Map client sort fields to API fields (only for API-sortable fields)
         const apiSortableFields: Record<string, string> = {
@@ -74,13 +92,14 @@ export default function Index() {
           params.append('sortOrder', sortDirection);
         }
 
-        const url = `http://localhost:3100/api/purchase-orders${params.toString() ? '?' + params.toString() : ''}`;
+        const url = `http://localhost:3100/api/purchase-orders?${params.toString()}`;
         const res = await fetch(url, {cache: 'no-cache'});
         if (!res.ok) {
           throw new Error('Failed to fetch data');
         }
-        const purchaseOrders = await res.json();
-        setData(purchaseOrders);
+        const response: PaginatedResponse = await res.json();
+        setData(response.data);
+        setPagination(response.meta);
       } catch (error) {
         console.error('Error fetching purchase orders:', error);
       } finally {
@@ -89,7 +108,7 @@ export default function Index() {
     }
 
     fetchData();
-  }, [sortField, sortDirection]);
+  }, [sortField, sortDirection, currentPage]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -98,6 +117,7 @@ export default function Index() {
       setSortField(field);
       setSortDirection('asc');
     }
+    setCurrentPage(1); // Reset to first page when sorting changes
   };
 
   const sortedData = (() => {
@@ -171,6 +191,7 @@ export default function Index() {
           </div>
         </div>
       ) : (
+        <>
         <div className="space-y-4">
           {sortedData.map((purchaseOrder: PurchaseOrder) => (
             <div
@@ -224,7 +245,7 @@ export default function Index() {
                       {purchaseOrder.incoterms || '-'}
                     </div>
                   </div>
-
+                  
                   <div className="ml-auto">
                     <Link
                       href={`/purchase-orders/${purchaseOrder.id}/edit`}
@@ -234,8 +255,6 @@ export default function Index() {
                     </Link>
                   </div>
                 </div>
-
-                <div className="divider my-2"></div>
 
                 <details className="collapse collapse-arrow bg-base-200">
                   <summary className="collapse-title font-semibold">
@@ -272,6 +291,68 @@ export default function Index() {
             </div>
           ))}
         </div>
+
+        {pagination && pagination.totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 mt-6">
+            <button
+              className="btn btn-sm"
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage === 1}
+            >
+              «
+            </button>
+            <button
+              className="btn btn-sm"
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              ‹
+            </button>
+
+            <div className="flex items-center gap-1">
+              {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
+                .filter(page => {
+                  // Show first, last, current, and pages around current
+                  return page === 1 ||
+                    page === pagination.totalPages ||
+                    Math.abs(page - currentPage) <= 1;
+                })
+                .map((page, index, arr) => (
+                  <span key={page} className="flex items-center">
+                    {index > 0 && arr[index - 1] !== page - 1 && (
+                      <span className="px-1 text-slate-400">…</span>
+                    )}
+                    <button
+                      className={`btn btn-sm ${currentPage === page ? 'btn-primary' : 'btn-ghost'}`}
+                      onClick={() => setCurrentPage(page)}
+                    >
+                      {page}
+                    </button>
+                  </span>
+                ))}
+            </div>
+
+            <button
+              className="btn btn-sm"
+              onClick={() => setCurrentPage(p => Math.min(pagination.totalPages, p + 1))}
+              disabled={currentPage === pagination.totalPages}
+            >
+              ›
+            </button>
+            <button
+              className="btn btn-sm"
+              onClick={() => setCurrentPage(pagination.totalPages)}
+              disabled={currentPage === pagination.totalPages}
+            >
+              »
+            </button>
+
+            <span className="text-sm text-slate-400 ml-4">
+              {pagination.total} total
+            </span>
+          </div>
+        )}
+        </>
       )}
     </div>
   );

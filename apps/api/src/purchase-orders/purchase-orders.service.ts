@@ -25,9 +25,9 @@ export class PurchaseOrdersService {
       orderBy?: Prisma.PurchaseOrdersOrderByWithRelationInput;
     }
   ): Promise<PurchaseOrders[]> {
-    
+
     const { skip, take, cursor, where, orderBy } = params;
-    
+
     return this.prisma.purchaseOrders.findMany({
       skip,
       take,
@@ -36,6 +36,12 @@ export class PurchaseOrdersService {
       orderBy,
       include: { purchase_order_line_items: true },
     });
+  }
+
+  async countPurchaseOrders(
+    where?: Prisma.PurchaseOrdersWhereInput
+  ): Promise<number> {
+    return this.prisma.purchaseOrders.count({ where });
   }
 
   async createPurchaseOrder(

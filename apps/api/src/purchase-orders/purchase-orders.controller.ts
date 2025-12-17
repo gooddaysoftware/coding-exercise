@@ -6,6 +6,16 @@ import {UpdatePurchaseOrdersV2Dto} from './dto/update-purchase-orders.dto';
 import {QueryPurchaseOrdersDto} from './dto/query-purchase-orders.dto';
 import {Prisma} from '@prisma/client';
 
+interface PaginatedResponse<T> {
+  data: T[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
 @Controller('purchase-orders')
 export class PurchaseOrdersController {
   constructor(private readonly purchaseOrdersService: PurchaseOrdersService) {
@@ -22,7 +32,7 @@ export class PurchaseOrdersController {
   @Get()
   async getPurchaseOrders(
     @Query() query: QueryPurchaseOrdersDto
-  ): Promise<PurchaseOrdersModel[]> {
+  ): Promise<PaginatedResponse<PurchaseOrdersModel>> {
     const {
       page = 1,
       limit = 10,
@@ -73,12 +83,27 @@ export class PurchaseOrdersController {
       }
     }
 
-    return this.purchaseOrdersService.purchaseOrders({
-      skip,
-      take,
-      orderBy,
-      where: Object.keys(where).length > 0 ? where : undefined,
-    });
+    const whereClause = Object.keys(where).length > 0 ? where : undefined;
+
+    const [data, total] = await Promise.all([
+      this.purchaseOrdersService.purchaseOrders({
+        skip,
+        take,
+        orderBy,
+        where: whereClause,
+      }),
+      this.purchaseOrdersService.countPurchaseOrders(whereClause),
+    ]);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   @Post()
