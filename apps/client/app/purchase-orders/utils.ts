@@ -53,3 +53,28 @@ export function calculateTotal(lineItems: PurchaseOrderLineItem[]): string {
 export function calculateTotalQuantity(lineItems: PurchaseOrderLineItem[]): number {
   return lineItems.reduce((sum, item) => sum + item.quantity, 0);
 }
+
+/**
+ * Formats an integer input value with commas as user types.
+ * Only allows digits, strips everything else.
+ * @param value - The raw input value
+ * @returns Formatted string with commas
+ */
+export function formatIntegerInput(value: string): string {
+  // Remove all non-digit characters
+  const digits = value.replace(/\D/g, '');
+  if (!digits) return '';
+
+  // Parse and format with commas
+  const num = parseInt(digits, 10);
+  return num.toLocaleString('en-US');
+}
+
+/**
+ * Parses a formatted number string (with commas) back to a number string.
+ * @param value - The formatted value (e.g., "1,234")
+ * @returns Plain number string (e.g., "1234")
+ */
+export function parseFormattedNumber(value: string): string {
+  return value.replace(/,/g, '');
+}

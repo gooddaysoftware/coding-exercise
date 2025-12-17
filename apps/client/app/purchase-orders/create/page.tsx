@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Item, ParentItem, LineItemForm, PurchaseOrderFormData } from '../types';
+import { formatIntegerInput, parseFormattedNumber } from '../utils';
 
 export default function CreatePurchaseOrder() {
   const router = useRouter();
@@ -62,6 +63,11 @@ export default function CreatePurchaseOrder() {
         i === index ? { ...item, [field]: value } : item
       )
     }));
+  };
+
+  const handleQuantityChange = (index: number, value: string) => {
+    const formatted = formatIntegerInput(value);
+    handleLineItemChange(index, 'quantity', formatted);
   };
 
   const handleItemSelect = (index: number, itemId: string) => {
@@ -142,8 +148,9 @@ export default function CreatePurchaseOrder() {
         return `Line item ${i + 1}: Please select an item`;
       }
 
-      const qty = Number(item.quantity);
-      if (!item.quantity || qty < 1 || !Number.isInteger(qty)) {
+      const rawQty = parseFormattedNumber(item.quantity);
+      const qty = Number(rawQty);
+      if (!rawQty || qty < 1 || !Number.isInteger(qty)) {
         return `Line item ${i + 1}: Quantity must be a positive integer`;
       }
 
@@ -176,7 +183,7 @@ export default function CreatePurchaseOrder() {
         incoterms: formData.incoterms || undefined,
         line_items: formData.line_items.map(item => ({
           item_id: Number(item.item_id),
-          quantity: Number(item.quantity),
+          quantity: Number(parseFormattedNumber(item.quantity)),
           unit_cost: item.unit_cost
         }))
       };
@@ -341,11 +348,11 @@ export default function CreatePurchaseOrder() {
                           <span className="label-text">Quantity</span>
                         </label>
                         <input
-                          type="number"
-                          min="1"
+                          type="text"
+                          inputMode="numeric"
                           className="input input-bordered"
                           value={lineItem.quantity}
-                          onChange={(e) => handleLineItemChange(index, 'quantity', e.target.value)}
+                          onChange={(e) => handleQuantityChange(index, e.target.value)}
                           required
                         />
                       </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Item, ParentItem, LineItemForm, PurchaseOrderFormData, PurchaseOrder } from '../../types';
+import { formatIntegerInput, parseFormattedNumber } from '../../utils';
 
 export default function EditPurchaseOrder() {
   const params = useParams();
@@ -61,7 +62,7 @@ export default function EditPurchaseOrder() {
           incoterms: po.incoterms || '',
           line_items: po.purchase_order_line_items.map(item => ({
             item_id: String(item.item_id),
-            quantity: String(item.quantity),
+            quantity: formatIntegerInput(String(item.quantity)),
             unit_cost: item.unit_cost
           }))
         });
@@ -89,6 +90,11 @@ export default function EditPurchaseOrder() {
         i === index ? { ...item, [field]: value } : item
       )
     }));
+  };
+
+  const handleQuantityChange = (index: number, value: string) => {
+    const formatted = formatIntegerInput(value);
+    handleLineItemChange(index, 'quantity', formatted);
   };
 
   const handleItemSelect = (index: number, itemId: string) => {
@@ -160,8 +166,9 @@ export default function EditPurchaseOrder() {
         return `Line item ${i + 1}: Please select an item`;
       }
 
-      const qty = Number(item.quantity);
-      if (!item.quantity || qty < 1 || !Number.isInteger(qty)) {
+      const rawQty = parseFormattedNumber(item.quantity);
+      const qty = Number(rawQty);
+      if (!rawQty || qty < 1 || !Number.isInteger(qty)) {
         return `Line item ${i + 1}: Quantity must be a positive integer`;
       }
 
@@ -194,7 +201,7 @@ export default function EditPurchaseOrder() {
         incoterms: formData.incoterms || undefined,
         line_items: formData.line_items.map(item => ({
           item_id: Number(item.item_id),
-          quantity: Number(item.quantity),
+          quantity: Number(parseFormattedNumber(item.quantity)),
           unit_cost: item.unit_cost
         }))
       };
@@ -378,11 +385,11 @@ export default function EditPurchaseOrder() {
                         <span className="label-text">Quantity</span>
                       </label>
                       <input
-                        type="number"
-                        min="1"
+                        type="text"
+                        inputMode="numeric"
                         className="input input-bordered"
                         value={lineItem.quantity}
-                        onChange={(e) => handleLineItemChange(index, 'quantity', e.target.value)}
+                        onChange={(e) => handleQuantityChange(index, e.target.value)}
                         required
                       />
                     </div>
