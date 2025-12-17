@@ -1,4 +1,4 @@
-import {Body, Controller, Get, Param, Patch, Post, Query} from '@nestjs/common';
+import {Body, Controller, Get, NotFoundException, Param, ParseIntPipe, Patch, Post, Query} from '@nestjs/common';
 import {PurchaseOrdersService} from './purchase-orders.service';
 import {PurchaseOrders as PurchaseOrdersModel} from '@prisma/client';
 import {CreatePurchaseOrderDto} from './dto/create-purchase-orders.dto';
@@ -26,12 +26,15 @@ export class PurchaseOrdersController {
     return this.purchaseOrdersService.getDistinctVendorNames();
   }
 
-  // TODO: add parameter validation
   @Get(':id')
   async getPurchaseOrderById(
-    @Param('id') id: string
-  ): Promise<PurchaseOrdersModel | null> {
-    return this.purchaseOrdersService.purchaseOrder({ id: Number(id) });
+    @Param('id', ParseIntPipe) id: number
+  ): Promise<PurchaseOrdersModel> {
+    const purchaseOrder = await this.purchaseOrdersService.purchaseOrder({ id });
+    if (!purchaseOrder) {
+      throw new NotFoundException(`Purchase order with ID ${id} not found`);
+    }
+    return purchaseOrder;
   }
 
   @Get()
@@ -134,13 +137,19 @@ export class PurchaseOrdersController {
 
   @Patch(':id')
   async updatePurchaseOrder(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updatePurchaseOrderDto: UpdatePurchaseOrdersV2Dto
   ): Promise<PurchaseOrdersModel> {
+    // Check if purchase order exists first
+    const existing = await this.purchaseOrdersService.purchaseOrder({ id });
+    if (!existing) {
+      throw new NotFoundException(`Purchase order with ID ${id} not found`);
+    }
+
     const { line_items, ...updateData } = updatePurchaseOrderDto;
 
     return this.purchaseOrdersService.updatePurchaseOrder({
-      where: { id: Number(id) },
+      where: { id },
       data: {
         ...updateData,
         ...(line_items && {

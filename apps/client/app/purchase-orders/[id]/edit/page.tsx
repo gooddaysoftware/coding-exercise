@@ -2,52 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-
-interface Item {
-  id: number;
-  parent_item_id: number;
-  name: string;
-  sku: string;
-  price: string;
-  quantity: number;
-}
-
-interface ParentItem {
-  id: number;
-  name: string;
-  items: Item[];
-}
-
-interface LineItemForm {
-  item_id: string;
-  quantity: string;
-  unit_cost: string;
-}
-
-interface FormData {
-  vendor_name: string;
-  order_date: string;
-  expected_delivery_date: string;
-  incoterms: string;
-  line_items: LineItemForm[];
-}
-
-interface PurchaseOrderLineItem {
-  id: number;
-  purchase_order_id: number;
-  item_id: number;
-  quantity: number;
-  unit_cost: string;
-}
-
-interface PurchaseOrder {
-  id: number;
-  vendor_name: string;
-  order_date: string;
-  expected_delivery_date: string;
-  incoterms?: string;
-  purchase_order_line_items: PurchaseOrderLineItem[];
-}
+import { Item, ParentItem, LineItemForm, PurchaseOrderFormData, PurchaseOrder } from '../../types';
 
 export default function EditPurchaseOrder() {
   const params = useParams();
@@ -57,7 +12,7 @@ export default function EditPurchaseOrder() {
   const [allItems, setAllItems] = useState<Item[]>([]);
   const [vendorNames, setVendorNames] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<PurchaseOrderFormData>({
     vendor_name: '',
     order_date: '',
     expected_delivery_date: '',

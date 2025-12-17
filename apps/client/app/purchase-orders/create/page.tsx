@@ -2,35 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-
-interface Item {
-  id: number;
-  parent_item_id: number;
-  name: string;
-  sku: string;
-  price: string;
-  quantity: number;
-}
-
-interface ParentItem {
-  id: number;
-  name: string;
-  items: Item[];
-}
-
-interface LineItemForm {
-  item_id: string;
-  quantity: string;
-  unit_cost: string;
-}
-
-interface FormData {
-  vendor_name: string;
-  order_date: string;
-  expected_delivery_date: string;
-  incoterms: string;
-  line_items: LineItemForm[];
-}
+import { Item, ParentItem, LineItemForm, PurchaseOrderFormData } from '../types';
 
 export default function CreatePurchaseOrder() {
   const router = useRouter();
@@ -38,7 +10,7 @@ export default function CreatePurchaseOrder() {
   const [allItems, setAllItems] = useState<Item[]>([]);
   const [vendorNames, setVendorNames] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<PurchaseOrderFormData>({
     vendor_name: '',
     order_date: new Date().toISOString().split('T')[0],
     expected_delivery_date: '',

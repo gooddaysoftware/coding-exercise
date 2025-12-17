@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { NotFoundException } from '@nestjs/common';
 import { PurchaseOrdersController } from './purchase-orders.controller';
 import { PurchaseOrdersService } from './purchase-orders.service';
 import { PrismaService } from '../prisma.service';
@@ -7,8 +8,6 @@ import { ItemExistsConstraint } from './validators/item-exists.validator';
 
 describe('PurchaseOrdersController', () => {
   let controller: PurchaseOrdersController;
-  let service: PurchaseOrdersService;
-  let prismaService: PrismaService;
 
   const mockPrismaService = {
     purchaseOrders: {
@@ -17,6 +16,7 @@ describe('PurchaseOrdersController', () => {
       findUnique: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
+      count: jest.fn(),
     },
     item: {
       findUnique: jest.fn(),
@@ -37,8 +37,6 @@ describe('PurchaseOrdersController', () => {
     }).compile();
 
     controller = module.get<PurchaseOrdersController>(PurchaseOrdersController);
-    service = module.get<PurchaseOrdersService>(PurchaseOrdersService);
-    prismaService = module.get<PrismaService>(PrismaService);
   });
 
   afterEach(() => {
@@ -309,10 +307,17 @@ describe('PurchaseOrdersController', () => {
       ];
 
       mockPrismaService.purchaseOrders.findMany.mockResolvedValue(mockPurchaseOrders);
+      mockPrismaService.purchaseOrders.count.mockResolvedValue(3);
 
       const result = await controller.getPurchaseOrders(queryDto);
 
-      expect(result).toEqual(mockPurchaseOrders);
+      expect(result.data).toEqual(mockPurchaseOrders);
+      expect(result.meta).toEqual({
+        total: 3,
+        page: 1,
+        limit: 10,
+        totalPages: 1,
+      });
       expect(mockPrismaService.purchaseOrders.findMany).toHaveBeenCalledWith({
         skip: 0,
         take: 10,
@@ -322,11 +327,11 @@ describe('PurchaseOrdersController', () => {
       });
 
       // Verify order is descending (latest delivery date first)
-      expect(result[0].expected_delivery_date.getTime()).toBeGreaterThan(
-        result[1].expected_delivery_date.getTime()
+      expect(result.data[0].expected_delivery_date.getTime()).toBeGreaterThan(
+        result.data[1].expected_delivery_date.getTime()
       );
-      expect(result[1].expected_delivery_date.getTime()).toBeGreaterThan(
-        result[2].expected_delivery_date.getTime()
+      expect(result.data[1].expected_delivery_date.getTime()).toBeGreaterThan(
+        result.data[2].expected_delivery_date.getTime()
       );
     });
 
@@ -372,10 +377,17 @@ describe('PurchaseOrdersController', () => {
       ];
 
       mockPrismaService.purchaseOrders.findMany.mockResolvedValue(mockPurchaseOrders);
+      mockPrismaService.purchaseOrders.count.mockResolvedValue(3);
 
       const result = await controller.getPurchaseOrders(queryDto);
 
-      expect(result).toEqual(mockPurchaseOrders);
+      expect(result.data).toEqual(mockPurchaseOrders);
+      expect(result.meta).toEqual({
+        total: 3,
+        page: 1,
+        limit: 10,
+        totalPages: 1,
+      });
       expect(mockPrismaService.purchaseOrders.findMany).toHaveBeenCalledWith({
         skip: 0,
         take: 10,
@@ -385,11 +397,11 @@ describe('PurchaseOrdersController', () => {
       });
 
       // Verify order is ascending (earliest delivery date first)
-      expect(result[0].expected_delivery_date.getTime()).toBeLessThan(
-        result[1].expected_delivery_date.getTime()
+      expect(result.data[0].expected_delivery_date.getTime()).toBeLessThan(
+        result.data[1].expected_delivery_date.getTime()
       );
-      expect(result[1].expected_delivery_date.getTime()).toBeLessThan(
-        result[2].expected_delivery_date.getTime()
+      expect(result.data[1].expected_delivery_date.getTime()).toBeLessThan(
+        result.data[2].expected_delivery_date.getTime()
       );
     });
 
@@ -400,9 +412,16 @@ describe('PurchaseOrdersController', () => {
       };
 
       mockPrismaService.purchaseOrders.findMany.mockResolvedValue([]);
+      mockPrismaService.purchaseOrders.count.mockResolvedValue(12);
 
-      await controller.getPurchaseOrders(queryDto);
+      const result = await controller.getPurchaseOrders(queryDto);
 
+      expect(result.meta).toEqual({
+        total: 12,
+        page: 2,
+        limit: 5,
+        totalPages: 3,
+      });
       expect(mockPrismaService.purchaseOrders.findMany).toHaveBeenCalledWith({
         skip: 5, // (page 2 - 1) * limit 5 = skip 5
         take: 5,
@@ -420,6 +439,7 @@ describe('PurchaseOrdersController', () => {
       };
 
       mockPrismaService.purchaseOrders.findMany.mockResolvedValue([]);
+      mockPrismaService.purchaseOrders.count.mockResolvedValue(0);
 
       await controller.getPurchaseOrders(queryDto);
 
@@ -434,6 +454,131 @@ describe('PurchaseOrdersController', () => {
         },
         include: { purchase_order_line_items: true },
       });
+    });
+  });
+
+  describe('getPurchaseOrderById', () => {
+    it('should return a purchase order when it exists', async () => {
+      const mockPurchaseOrder = {
+        id: 1,
+        vendor_name: 'Test Vendor',
+        order_date: new Date('2025-01-01T00:00:00.000Z'),
+        expected_delivery_date: new Date('2025-02-01T00:00:00.000Z'),
+        incoterms: 'FOB',
+        created_at: new Date(),
+        updated_at: new Date(),
+        purchase_order_line_items: [
+          { id: 1, purchase_order_id: 1, item_id: 1, quantity: 10, unit_cost: '15.50' },
+        ],
+      };
+
+      mockPrismaService.purchaseOrders.findUnique.mockResolvedValue(mockPurchaseOrder);
+
+      const result = await controller.getPurchaseOrderById(1);
+
+      expect(result).toEqual(mockPurchaseOrder);
+      expect(mockPrismaService.purchaseOrders.findUnique).toHaveBeenCalledWith({
+        where: { id: 1 },
+        include: { purchase_order_line_items: true },
+      });
+    });
+
+    it('should throw NotFoundException when purchase order does not exist', async () => {
+      mockPrismaService.purchaseOrders.findUnique.mockResolvedValue(null);
+
+      await expect(controller.getPurchaseOrderById(999)).rejects.toThrow(NotFoundException);
+      await expect(controller.getPurchaseOrderById(999)).rejects.toThrow(
+        'Purchase order with ID 999 not found'
+      );
+    });
+  });
+
+  describe('updatePurchaseOrder', () => {
+    it('should update a purchase order successfully', async () => {
+      const existingPO = {
+        id: 1,
+        vendor_name: 'Old Vendor',
+        order_date: new Date('2025-01-01T00:00:00.000Z'),
+        expected_delivery_date: new Date('2025-02-01T00:00:00.000Z'),
+        incoterms: 'FOB',
+        created_at: new Date(),
+        updated_at: new Date(),
+        purchase_order_line_items: [],
+      };
+
+      const updateDto = {
+        vendor_name: 'New Vendor',
+        expected_delivery_date: '2025-03-01T00:00:00.000Z',
+      };
+
+      const updatedPO = {
+        ...existingPO,
+        vendor_name: 'New Vendor',
+        expected_delivery_date: new Date('2025-03-01T00:00:00.000Z'),
+      };
+
+      mockPrismaService.purchaseOrders.findUnique.mockResolvedValue(existingPO);
+      mockPrismaService.purchaseOrders.update.mockResolvedValue(updatedPO);
+
+      const result = await controller.updatePurchaseOrder(1, updateDto);
+
+      expect(result).toEqual(updatedPO);
+      expect(mockPrismaService.purchaseOrders.update).toHaveBeenCalledWith({
+        data: {
+          vendor_name: 'New Vendor',
+          expected_delivery_date: '2025-03-01T00:00:00.000Z',
+        },
+        where: { id: 1 },
+      });
+    });
+
+    it('should update line items when provided', async () => {
+      const existingPO = {
+        id: 1,
+        vendor_name: 'Test Vendor',
+        order_date: new Date('2025-01-01T00:00:00.000Z'),
+        expected_delivery_date: new Date('2025-02-01T00:00:00.000Z'),
+        incoterms: 'FOB',
+        created_at: new Date(),
+        updated_at: new Date(),
+        purchase_order_line_items: [],
+      };
+
+      const updateDto = {
+        line_items: [
+          { item_id: 1, quantity: 5, unit_cost: '10.00' },
+          { item_id: 2, quantity: 3, unit_cost: '20.00' },
+        ],
+      };
+
+      mockPrismaService.purchaseOrders.findUnique.mockResolvedValue(existingPO);
+      mockPrismaService.purchaseOrders.update.mockResolvedValue(existingPO);
+
+      await controller.updatePurchaseOrder(1, updateDto);
+
+      expect(mockPrismaService.purchaseOrders.update).toHaveBeenCalledWith({
+        data: {
+          purchase_order_line_items: {
+            deleteMany: {},
+            create: [
+              { item_id: 1, quantity: 5, unit_cost: '10.00' },
+              { item_id: 2, quantity: 3, unit_cost: '20.00' },
+            ],
+          },
+        },
+        where: { id: 1 },
+      });
+    });
+
+    it('should throw NotFoundException when purchase order does not exist', async () => {
+      mockPrismaService.purchaseOrders.findUnique.mockResolvedValue(null);
+
+      await expect(
+        controller.updatePurchaseOrder(999, { vendor_name: 'New Vendor' })
+      ).rejects.toThrow(NotFoundException);
+      await expect(
+        controller.updatePurchaseOrder(999, { vendor_name: 'New Vendor' })
+      ).rejects.toThrow('Purchase order with ID 999 not found');
     });
   });
 });

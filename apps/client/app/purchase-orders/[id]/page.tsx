@@ -1,55 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
-
-interface PurchaseOrderLineItem {
-  id: number;
-  purchase_order_id: number;
-  item_id: number;
-  quantity: number;
-  unit_cost: string;
-  created_at: Date;
-  updated_at: Date;
-}
-
-interface PurchaseOrder {
-  id: number;
-  vendor_name: string;
-  order_date: string;
-  expected_delivery_date: string;
-  incoterms?: string;
-  purchase_order_line_items: PurchaseOrderLineItem[];
-}
-
-function formatDate(dateString: string): string {
-  // Extract date part to avoid timezone conversion issues
-  const datePart = dateString.split('T')[0]; // "2026-01-02"
-  const [year, month, day] = datePart.split('-');
-  // Create date in local timezone to prevent day shifting
-  const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
-}
-
-function calculateTotal(lineItems: PurchaseOrderLineItem[]): string {
-  const total = lineItems.reduce((sum, item) => {
-    return sum + (Number(item.unit_cost) * item.quantity);
-  }, 0);
-  return total.toFixed(2);
-}
-
-function calculateTotalQuantity(lineItems: PurchaseOrderLineItem[]): number {
-  return lineItems.reduce((sum, item) => sum + item.quantity, 0);
-}
+import { PurchaseOrder, PurchaseOrderLineItem } from '../types';
+import { formatDate, calculateTotal, calculateTotalQuantity } from '../utils';
 
 export default function PurchaseOrderDetail() {
   const params = useParams();
-  const router = useRouter();
   const id = params.id as string;
 
   const [purchaseOrder, setPurchaseOrder] = useState<PurchaseOrder | null>(null);

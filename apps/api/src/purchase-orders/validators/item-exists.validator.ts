@@ -7,7 +7,7 @@ import { PrismaService } from '../../prisma.service';
 export class ItemExistsConstraint implements ValidatorConstraintInterface {
   constructor(private prisma: PrismaService) {}
 
-  async validate(itemId: number, args: ValidationArguments) {
+  async validate(itemId: number, _args: ValidationArguments) {
     try {
       const item = await this.prisma.item.findUnique({
         where: { id: itemId }
