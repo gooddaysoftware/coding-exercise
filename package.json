@@ -38,6 +38,7 @@
     "tslib": "^2.3.0"
   },
   "devDependencies": {
+    "@faker-js/faker": "^10.1.0",
     "@nestjs/schematics": "^10.1.4",
     "@nestjs/testing": "^10.4.4",
     "@nx/cypress": "19.8.0",
