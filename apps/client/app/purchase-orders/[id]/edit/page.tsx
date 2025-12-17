@@ -169,15 +169,13 @@ export default function EditPurchaseOrder() {
       return 'Vendor name is required';
     }
 
-    if (!formData.order_date) {
-      return 'Order date is required';
-    }
+    // order_date validation removed - field is disabled and cannot be changed
 
     if (!formData.expected_delivery_date) {
       return 'Expected delivery date is required';
     }
 
-    // Validate date relationship
+    // Validate date relationship (delivery date must still be after order date)
     const orderDate = new Date(formData.order_date);
     const deliveryDate = new Date(formData.expected_delivery_date);
     if (deliveryDate < orderDate) {
@@ -232,7 +230,7 @@ export default function EditPurchaseOrder() {
     try {
       const payload = {
         vendor_name: formData.vendor_name,
-        order_date: new Date(formData.order_date).toISOString(),
+        // order_date is not included - cannot be changed after creation
         expected_delivery_date: new Date(formData.expected_delivery_date).toISOString(),
         incoterms: formData.incoterms || undefined,
         line_items: formData.line_items.map(item => ({
@@ -323,8 +321,8 @@ export default function EditPurchaseOrder() {
                 type="date"
                 className="input input-bordered"
                 value={formData.order_date}
-                onChange={(e) => handleFieldChange('order_date', e.target.value)}
-                required
+                disabled
+                title="Order date cannot be changed after creation"
               />
             </div>
 

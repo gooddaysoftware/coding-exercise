@@ -127,12 +127,19 @@ export default function CreatePurchaseOrder() {
       return 'Order date is required';
     }
 
+    // Validate order date is not before today
+    const orderDate = new Date(formData.order_date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day for comparison
+    if (orderDate < today) {
+      return 'Order date cannot be before today';
+    }
+
     if (!formData.expected_delivery_date) {
       return 'Expected delivery date is required';
     }
 
     // Validate date relationship
-    const orderDate = new Date(formData.order_date);
     const deliveryDate = new Date(formData.expected_delivery_date);
     if (deliveryDate < orderDate) {
       return 'Expected delivery date must be on or after the order date';
