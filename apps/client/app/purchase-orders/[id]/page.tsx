@@ -78,87 +78,78 @@ export default function PurchaseOrderDetail() {
         </div>
       </div>
 
-      <div className="space-y-4">
-        <div className="card bg-base-100 shadow-xl">
-          <div className="card-body">
-            <h2 className="card-title mb-4">Order Information</h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <div className="text-sm text-slate-400">Vendor Name</div>
-                <div className="text-lg font-semibold">{purchaseOrder.vendor_name}</div>
-              </div>
-
-              <div>
-                <div className="text-sm text-slate-400">Incoterms</div>
-                <div className="text-lg font-semibold">
-                  {purchaseOrder.incoterms || 'Not specified'}
-                </div>
-              </div>
-
-              <div>
-                <div className="text-sm text-slate-400">Order Date</div>
-                <div className="text-lg font-semibold">
-                  {formatDate(purchaseOrder.order_date)}
-                </div>
-              </div>
-
-              <div>
-                <div className="text-sm text-slate-400">Expected Delivery Date</div>
-                <div className="text-lg font-semibold">
-                  {formatDate(purchaseOrder.expected_delivery_date)}
-                </div>
-              </div>
-            </div>
+      <div className="paper-card p-5 pb-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+          <span className="po-stamp text-lg">PO #{purchaseOrder.id}</span>
+          <div>
+            <div className="meta-label">Vendor</div>
+            <div className="text-lg font-semibold">{purchaseOrder.vendor_name}</div>
           </div>
         </div>
 
-        <div className="card bg-base-100 shadow-xl">
-          <div className="card-body">
-            <h2 className="card-title mb-4">Line Items</h2>
+        <div className="form-separator" />
 
-            <div className="overflow-x-auto">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Item ID</th>
-                    <th>Quantity</th>
-                    <th>Unit Cost</th>
-                    <th className="text-right">Subtotal</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {purchaseOrder.purchase_order_line_items.map((lineItem: PurchaseOrderLineItem) => (
-                    <tr key={lineItem.id}>
-                      <td>#{lineItem.item_id}</td>
-                      <td>{formatNumber(lineItem.quantity)}</td>
-                      <td>${formatCurrency(lineItem.unit_cost)}</td>
-                      <td className="text-right">
-                        ${formatCurrency(Number(lineItem.unit_cost) * lineItem.quantity)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="divider my-2"></div>
-
-            <div className="flex justify-end gap-8">
-              <div>
-                <div className="text-sm text-slate-400">Total Quantity</div>
-                <div className="text-xl font-bold">
-                  {formatNumber(calculateTotalQuantity(purchaseOrder.purchase_order_line_items))} items
-                </div>
-              </div>
-              <div>
-                <div className="text-sm text-slate-400">Total Cost</div>
-                <div className="text-2xl font-bold">
-                  ${calculateTotal(purchaseOrder.purchase_order_line_items)}
-                </div>
-              </div>
-            </div>
+        {/* Order Information */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+          <div>
+            <div className="meta-label">Order Date</div>
+            <div className="text-sm">{formatDate(purchaseOrder.order_date)}</div>
           </div>
+          <div>
+            <div className="meta-label">Expected Delivery</div>
+            <div className="text-sm">{formatDate(purchaseOrder.expected_delivery_date)}</div>
+          </div>
+          <div>
+            <div className="meta-label">Incoterms</div>
+            {purchaseOrder.incoterms ? (
+              <span className="incoterms-badge">{purchaseOrder.incoterms}</span>
+            ) : (
+              <span className="text-sm text-slate-500">—</span>
+            )}
+          </div>
+          <div>
+            <div className="meta-label">Line Items</div>
+            <div className="text-sm">{purchaseOrder.purchase_order_line_items.length} item{purchaseOrder.purchase_order_line_items.length !== 1 ? 's' : ''}</div>
+          </div>
+        </div>
+
+        {/* Line Items Table */}
+        <div className="overflow-x-auto">
+          <table className="po-table">
+            <thead>
+              <tr>
+                <th>Item #</th>
+                <th className="text-right">Qty</th>
+                <th className="text-right">Unit Cost</th>
+                <th className="text-right">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {purchaseOrder.purchase_order_line_items.map((lineItem: PurchaseOrderLineItem) => (
+                <tr key={lineItem.id}>
+                  <td className="font-mono text-sm">#{lineItem.item_id}</td>
+                  <td className="text-right">{formatNumber(lineItem.quantity)}</td>
+                  <td className="text-right">${formatCurrency(lineItem.unit_cost)}</td>
+                  <td className="text-right font-medium">
+                    ${formatCurrency(Number(lineItem.unit_cost) * lineItem.quantity)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td className="font-semibold">Total</td>
+                <td className="text-right font-semibold">
+                  {formatNumber(calculateTotalQuantity(purchaseOrder.purchase_order_line_items))}
+                </td>
+                <td></td>
+                <td className="text-right font-bold text-primary text-lg">
+                  ${calculateTotal(purchaseOrder.purchase_order_line_items)}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
         </div>
       </div>
     </div>

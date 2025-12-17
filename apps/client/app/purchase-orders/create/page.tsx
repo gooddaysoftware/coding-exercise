@@ -223,12 +223,14 @@ export default function CreatePurchaseOrder() {
           <span className="loading loading-spinner loading-lg"></span>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="card bg-base-100 shadow-xl">
-            <div className="card-body">
-              <h2 className="card-title">Order Information</h2>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="paper-card p-5 pb-8">
+            <h2 className="text-lg font-semibold mb-4">Order Information</h2>
 
-              <div className="form-control">
+            <div className="form-separator" />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+              <div className="form-control sm:col-span-2">
                 <label className="label">
                   <span className="label-text">Vendor Name</span>
                 </label>
@@ -294,42 +296,37 @@ export default function CreatePurchaseOrder() {
             </div>
           </div>
 
-          <div className="card bg-base-100 shadow-xl">
-            <div className="card-body">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="card-title">Items</h2>
-                <button
-                  type="button"
-                  className="btn btn-primary btn-sm"
-                  onClick={addLineItem}
-                >
-                  Add Item
-                </button>
-              </div>
+          <div className="paper-card p-5 pb-8">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">Line Items</h2>
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={addLineItem}
+              >
+                Add Item
+              </button>
+            </div>
 
-              <div className="space-y-4">
-                {formData.line_items.map((lineItem, index) => (
-                  <div key={index} className="border border-slate-700 rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <h3 className="font-semibold">Item {index + 1}</h3>
-                      {formData.line_items.length > 1 && (
-                        <button
-                          type="button"
-                          className="btn btn-error btn-sm"
-                          onClick={() => removeLineItem(index)}
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </div>
+            <div className="form-separator" />
 
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      <div className="form-control">
-                        <label className="label">
-                          <span className="label-text">Item</span>
-                        </label>
+            <div className="overflow-x-auto mt-4">
+              <table className="po-table">
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th className="text-right">Qty</th>
+                    <th className="text-right">Unit Cost</th>
+                    <th className="text-right">Amount</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {formData.line_items.map((lineItem, index) => (
+                    <tr key={index}>
+                      <td>
                         <select
-                          className="select select-bordered"
+                          className="select select-bordered select-sm w-full min-w-[200px]"
                           value={lineItem.item_id}
                           onChange={(e) => handleItemSelect(index, e.target.value)}
                           required
@@ -341,51 +338,48 @@ export default function CreatePurchaseOrder() {
                             </option>
                           ))}
                         </select>
-                      </div>
-
-                      <div className="form-control">
-                        <label className="label">
-                          <span className="label-text">Quantity</span>
-                        </label>
+                      </td>
+                      <td className="text-right">
                         <input
                           type="text"
                           inputMode="numeric"
-                          className="input input-bordered"
+                          className="input input-bordered input-sm w-24 text-right"
                           value={lineItem.quantity}
                           onChange={(e) => handleQuantityChange(index, e.target.value)}
                           required
                         />
-                      </div>
-
-                      <div className="form-control">
-                        <label className="label">
-                          <span className="label-text">Unit Cost</span>
-                        </label>
+                      </td>
+                      <td className="text-right">
                         <input
                           type="number"
                           step="0.01"
                           min="0.01"
-                          className="input input-bordered"
+                          className="input input-bordered input-sm w-28 text-right"
                           value={lineItem.unit_cost}
                           onChange={(e) => handleLineItemChange(index, 'unit_cost', e.target.value)}
                           required
                         />
-                      </div>
-
-                      <div className="form-control">
-                        <label className="label">
-                          <span className="label-text">Subtotal</span>
-                        </label>
-                        <div className="input input-bordered flex items-center bg-base-200">
-                          ${formatCurrency(
-                            Number(parseFormattedNumber(lineItem.quantity)) * Number(lineItem.unit_cost) || 0
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                      </td>
+                      <td className="text-right font-medium">
+                        ${formatCurrency(
+                          Number(parseFormattedNumber(lineItem.quantity)) * Number(lineItem.unit_cost) || 0
+                        )}
+                      </td>
+                      <td className="text-right">
+                        {formData.line_items.length > 1 && (
+                          <button
+                            type="button"
+                            className="btn btn-ghost btn-sm text-error"
+                            onClick={() => removeLineItem(index)}
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
 
