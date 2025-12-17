@@ -53,6 +53,32 @@ export function IsAfterOrEqual(property: string, validationOptions?: ValidationO
   };
 }
 
+// Custom validator for date not before today
+export function IsNotBeforeToday(validationOptions?: ValidationOptions) {
+  return function (object: Object, propertyName: string) {
+    registerDecorator({
+      name: 'isNotBeforeToday',
+      target: object.constructor,
+      propertyName: propertyName,
+      options: validationOptions,
+      validator: {
+        validate(value: any, args: ValidationArguments) {
+          if (!value) return true; // Skip if date is missing (handled by @IsDateString)
+
+          const orderDate = new Date(value);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0); // Reset time to start of day
+
+          return orderDate >= today;
+        },
+        defaultMessage(args: ValidationArguments) {
+          return 'Order date cannot be before today';
+        }
+      }
+    });
+  };
+}
+
 export class CreateLineItemDto {
   @IsInt()
   @Validate(ItemExistsConstraint)
@@ -73,6 +99,7 @@ export class CreatePurchaseOrderDto {
   vendor_name: string;
 
   @IsDateString()
+  @IsNotBeforeToday()
   order_date: string;
 
   @IsDateString()
