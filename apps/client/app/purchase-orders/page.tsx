@@ -69,6 +69,24 @@ export default function Index() {
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState<PaginationMeta | null>(null);
+  const [vendorFilter, setVendorFilter] = useState('');
+  const [vendorNames, setVendorNames] = useState<string[]>([]);
+
+  // Fetch vendor names for autocomplete
+  useEffect(() => {
+    async function fetchVendorNames() {
+      try {
+        const res = await fetch('http://localhost:3100/api/purchase-orders/vendors');
+        if (res.ok) {
+          const names = await res.json();
+          setVendorNames(names);
+        }
+      } catch (error) {
+        console.error('Error fetching vendor names:', error);
+      }
+    }
+    fetchVendorNames();
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
@@ -92,6 +110,11 @@ export default function Index() {
           params.append('sortOrder', sortDirection);
         }
 
+        // Add vendor filter if set
+        if (vendorFilter.trim()) {
+          params.append('vendor_name', vendorFilter.trim());
+        }
+
         const url = `http://localhost:3100/api/purchase-orders?${params.toString()}`;
         const res = await fetch(url, {cache: 'no-cache'});
         if (!res.ok) {
@@ -108,7 +131,7 @@ export default function Index() {
     }
 
     fetchData();
-  }, [sortField, sortDirection, currentPage]);
+  }, [sortField, sortDirection, currentPage, vendorFilter]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -169,13 +192,46 @@ export default function Index() {
 
       <div className="card bg-base-100 shadow-xl mb-4">
         <div className="card-body py-3">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-semibold mr-2">Sort by:</span>
-            <SortButton field="delivery_date" label="Delivery Date" />
-            <SortButton field="order_date" label="Order Date" />
-            <SortButton field="vendor" label="Vendor" />
-            <SortButton field="quantity" label="Quantity" />
-            <SortButton field="cost" label="Cost" />
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold">Filter:</span>
+              <input
+                type="text"
+                placeholder="Search by vendor..."
+                className="input input-sm input-bordered w-48"
+                list="vendor-names"
+                value={vendorFilter}
+                onChange={(e) => {
+                  setVendorFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+              />
+              <datalist id="vendor-names">
+                {vendorNames.map((name) => (
+                  <option key={name} value={name} />
+                ))}
+              </datalist>
+              {vendorFilter && (
+                <button
+                  className="btn btn-sm btn-ghost"
+                  onClick={() => {
+                    setVendorFilter('');
+                    setCurrentPage(1);
+                  }}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            <div className="border-l border-base-300 h-6 mx-2"></div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold">Sort by:</span>
+              <SortButton field="delivery_date" label="Delivery Date" />
+              <SortButton field="order_date" label="Order Date" />
+              <SortButton field="vendor" label="Vendor" />
+              <SortButton field="quantity" label="Quantity" />
+              <SortButton field="cost" label="Cost" />
+            </div>
           </div>
         </div>
       </div>
@@ -187,7 +243,11 @@ export default function Index() {
       ) : data.length === 0 ? (
         <div className="card bg-base-100 shadow-xl">
           <div className="card-body text-center">
-            <p className="text-slate-400">No purchase orders found. Create your first one!</p>
+            <p className="text-slate-400">
+              {vendorFilter
+                ? `No purchase orders found for "${vendorFilter}".`
+                : 'No purchase orders found. Create your first one!'}
+            </p>
           </div>
         </div>
       ) : (
@@ -226,7 +286,7 @@ export default function Index() {
                   </div>
 
                   <div className="text-center min-w-[120px]">
-                    <div className="text-xs text-slate-400">Expected</div>
+                    <div className="text-xs text-slate-400">Arriving</div>
                     <div className="text-sm">
                       {formatDate(purchaseOrder.expected_delivery_date)}
                     </div>

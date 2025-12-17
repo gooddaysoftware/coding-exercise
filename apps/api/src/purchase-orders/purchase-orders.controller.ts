@@ -21,6 +21,11 @@ export class PurchaseOrdersController {
   constructor(private readonly purchaseOrdersService: PurchaseOrdersService) {
   }
 
+  @Get('vendors')
+  async getVendorNames(): Promise<string[]> {
+    return this.purchaseOrdersService.getDistinctVendorNames();
+  }
+
   // TODO: add parameter validation
   @Get(':id')
   async getPurchaseOrderById(

@@ -36,6 +36,7 @@ export default function CreatePurchaseOrder() {
   const router = useRouter();
 
   const [allItems, setAllItems] = useState<Item[]>([]);
+  const [vendorNames, setVendorNames] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState<FormData>({
     vendor_name: '',
@@ -48,18 +49,23 @@ export default function CreatePurchaseOrder() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchItems() {
+    async function fetchData() {
       try {
-        const res = await fetch('http://localhost:3100/api/parent-items', {
-          cache: 'no-cache'
-        });
-        if (!res.ok) throw new Error('Failed to fetch items');
+        const [itemsRes, vendorsRes] = await Promise.all([
+          fetch('http://localhost:3100/api/parent-items', { cache: 'no-cache' }),
+          fetch('http://localhost:3100/api/purchase-orders/vendors', { cache: 'no-cache' })
+        ]);
 
-        const parentItems: ParentItem[] = await res.json();
+        if (!itemsRes.ok) throw new Error('Failed to fetch items');
 
-        // Flatten nested items from all parent items
+        const parentItems: ParentItem[] = await itemsRes.json();
         const flatItems = parentItems.flatMap(parent => parent.items);
         setAllItems(flatItems);
+
+        if (vendorsRes.ok) {
+          const vendors = await vendorsRes.json();
+          setVendorNames(vendors);
+        }
       } catch (err) {
         setError('Failed to load items. Please refresh the page.');
       } finally {
@@ -67,7 +73,7 @@ export default function CreatePurchaseOrder() {
       }
     }
 
-    fetchItems();
+    fetchData();
   }, []);
 
   const handleFieldChange = (field: string, value: string) => {
@@ -249,12 +255,18 @@ export default function CreatePurchaseOrder() {
                 </label>
                 <input
                   type="text"
-                  placeholder="Enter vendor name"
+                  placeholder="Enter or select vendor name"
                   className="input input-bordered"
+                  list="vendor-names"
                   value={formData.vendor_name}
                   onChange={(e) => handleFieldChange('vendor_name', e.target.value)}
                   required
                 />
+                <datalist id="vendor-names">
+                  {vendorNames.map((name) => (
+                    <option key={name} value={name} />
+                  ))}
+                </datalist>
               </div>
 
               <div className="form-control">

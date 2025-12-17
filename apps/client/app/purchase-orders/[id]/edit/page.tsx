@@ -55,6 +55,7 @@ export default function EditPurchaseOrder() {
   const id = params.id as string;
 
   const [allItems, setAllItems] = useState<Item[]>([]);
+  const [vendorNames, setVendorNames] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState<FormData>({
     vendor_name: '',
@@ -70,20 +71,23 @@ export default function EditPurchaseOrder() {
   useEffect(() => {
     async function loadData() {
       try {
-        // Fetch items
-        const itemsRes = await fetch('http://localhost:3100/api/parent-items', {
-          cache: 'no-cache'
-        });
+        // Fetch items, vendors, and existing PO in parallel
+        const [itemsRes, vendorsRes, poRes] = await Promise.all([
+          fetch('http://localhost:3100/api/parent-items', { cache: 'no-cache' }),
+          fetch('http://localhost:3100/api/purchase-orders/vendors', { cache: 'no-cache' }),
+          fetch(`http://localhost:3100/api/purchase-orders/${id}`, { cache: 'no-cache' })
+        ]);
+
         if (!itemsRes.ok) throw new Error('Failed to fetch items');
 
         const parentItems: ParentItem[] = await itemsRes.json();
         const flatItems = parentItems.flatMap(parent => parent.items);
         setAllItems(flatItems);
 
-        // Fetch existing PO
-        const poRes = await fetch(`http://localhost:3100/api/purchase-orders/${id}`, {
-          cache: 'no-cache'
-        });
+        if (vendorsRes.ok) {
+          const vendors = await vendorsRes.json();
+          setVendorNames(vendors);
+        }
 
         if (!poRes.ok) {
           if (poRes.status === 404) {
@@ -305,12 +309,18 @@ export default function EditPurchaseOrder() {
               </label>
               <input
                 type="text"
-                placeholder="Enter vendor name"
+                placeholder="Enter or select vendor name"
                 className="input input-bordered"
+                list="vendor-names"
                 value={formData.vendor_name}
                 onChange={(e) => handleFieldChange('vendor_name', e.target.value)}
                 required
               />
+              <datalist id="vendor-names">
+                {vendorNames.map((name) => (
+                  <option key={name} value={name} />
+                ))}
+              </datalist>
             </div>
 
             <div className="form-control">

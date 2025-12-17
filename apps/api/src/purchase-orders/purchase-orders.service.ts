@@ -44,6 +44,15 @@ export class PurchaseOrdersService {
     return this.prisma.purchaseOrders.count({ where });
   }
 
+  async getDistinctVendorNames(): Promise<string[]> {
+    const results = await this.prisma.purchaseOrders.findMany({
+      distinct: ['vendor_name'],
+      select: { vendor_name: true },
+      orderBy: { vendor_name: 'asc' },
+    });
+    return results.map(r => r.vendor_name);
+  }
+
   async createPurchaseOrder(
     data: Prisma.PurchaseOrdersCreateInput
   ): Promise<PurchaseOrders> {
